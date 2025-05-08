@@ -14,7 +14,4 @@ cp $(pwd)/waybar/style.css ~/.config/waybar/style.css || true
 cp $(pwd)/gtk/gtk-3.0/settings.ini ~/.config/gtk-3.0/settings.ini || true
 cp $(pwd)/gtk/gtk-4.0/settings.ini ~/.config/gtk-4.0/settings.ini || true
 
-echo "🎨 Applying theme..."
-bash scripts/apply-themes.sh
-
 echo "✅ Setup complete. Restart Hyprland to apply."
