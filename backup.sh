@@ -7,6 +7,8 @@ SOURCE_DIRS=(
     "$HOME/.config/nvim"
     "$HOME/.config/gtk-3.0"
     "$HOME/.config/gtk-4.0"
+    "$HOME/.config/kitty"
+    "$HOME/.config/wofi"
 )
 
 # Define destination directory
