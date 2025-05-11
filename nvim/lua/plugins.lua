@@ -1,6 +1,5 @@
-
 return {
-  -- none-ls for formatters/linters
+  -- none-ls for external formatters/linters (no Go formatters anymore)
   {
     "nvimtools/none-ls.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
@@ -8,17 +7,8 @@ return {
       local null_ls = require("null-ls")
       null_ls.setup({
         sources = {
-          null_ls.builtins.formatting.gofmt,
           null_ls.builtins.diagnostics.golangci_lint,
         },
-        on_attach = function(client, bufnr)
-          if client.supports_method("textDocument/formatting") then
-            vim.api.nvim_create_autocmd("BufWritePre", {
-              buffer = bufnr,
-              callback = function() vim.lsp.buf.format({ bufnr = bufnr }) end,
-            })
-          end
-        end,
       })
     end,
   },
@@ -31,7 +21,6 @@ return {
       local nvim_tree = require("nvim-tree")
       local api = require("nvim-tree.api")
 
-      -- Set 'splitright' option for vertical splits to open on the right
       vim.o.splitright = true
 
       nvim_tree.setup({
@@ -51,8 +40,6 @@ return {
       })
 
       vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle File Tree" })
-
-      -- Map Esc to just exit insert mode without closing nvim-tree
       vim.keymap.set("i", "<esc>", "<Esc>", { noremap = true })
     end,
   },
@@ -73,16 +60,13 @@ return {
           winblend = 10,
           mappings = {
             i = {
-              ["<esc>"] = function()
-                -- Just exit insert mode without closing the picker
-                vim.cmd("stopinsert")
-              end,
+              ["<esc>"] = function() vim.cmd("stopinsert") end,
               ["<C-j>"] = actions.move_selection_next,
               ["<C-k>"] = actions.move_selection_previous,
             },
             n = {
               ["e"] = actions.select_default,
-              ["v"] = actions.select_vertical,  -- Ensures vertical split to the right
+              ["v"] = actions.select_vertical,
               ["s"] = actions.select_horizontal,
             },
           },
@@ -135,13 +119,23 @@ return {
         float = { border = "rounded", source = "always" },
       })
 
-      local on_attach = function(_, bufnr)
+      local on_attach = function(client, bufnr)
         local opts = { buffer = bufnr, silent = true }
         vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
         vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
         vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
         vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
         vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+
+        -- Format on save via LSP (gopls)
+        if client.supports_method("textDocument/formatting") then
+          vim.api.nvim_create_autocmd("BufWritePre", {
+            buffer = bufnr,
+            callback = function()
+              vim.lsp.buf.format({ async = false })
+            end,
+          })
+        end
       end
 
       local servers = { "gopls", "csharp_ls" }
@@ -263,7 +257,6 @@ return {
       dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
       dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
 
-      -- Debug keymaps
       vim.keymap.set("n", "<F5>", dap.continue, { desc = "DAP Continue" })
       vim.keymap.set("n", "<F9>", dap.toggle_breakpoint, { desc = "DAP Breakpoint" })
       vim.keymap.set("n", "<F10>", dap.step_over, { desc = "DAP Step Over" })
@@ -274,6 +267,8 @@ return {
 
   -- Web dev icons
   { "nvim-tree/nvim-web-devicons" },
+
+  -- Mason installer for tools
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     dependencies = { "williamboman/mason.nvim" },
